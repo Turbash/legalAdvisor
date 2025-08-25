@@ -1,3 +1,12 @@
 PyPDF2
 sentence-transformers
 chromadb
+fastapi
+psycopg2-binary
+sqlalchemy
+python-dotenv
+Typing
+passlib[bcrypt]
+python-jose[cryptography]
+python-multipart
+huggingface-hub
