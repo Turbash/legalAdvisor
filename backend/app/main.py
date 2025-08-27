@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import List, Annotated
 from app import models
 from app.database import Base, engine
-from app.routers import auth,chat
+from app.routers import auth,chat,user
 
 Base.metadata.create_all(bind=engine)
 
@@ -26,6 +26,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(chat.router)
+app.include_router(user.router)
 
 app.get("/")
 def root():

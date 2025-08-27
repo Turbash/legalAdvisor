@@ -3,7 +3,7 @@ from jose import jwt
 from dotenv import load_dotenv
 import os
 from fastapi.security import OAuth2PasswordBearer
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status
 from jose import JWTError
 
 load_dotenv()
@@ -32,9 +32,11 @@ def decode_access_token(token: str):
 def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
         payload = decode_access_token(token)
+        if not payload:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
         user_id: int = payload.get("user_id")
         if user_id is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
         return user_id
-    except jwt.PyJWTError:
+    except jwt.JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
