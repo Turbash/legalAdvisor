@@ -26,6 +26,13 @@ class ChatMessage(BaseModel):
 class ChatMessageList(BaseModel):
     messages: list[ChatMessage]
 
+class ChatSessionEle(BaseModel):
+    id: int
+    title: str
+
+class ChatSessionList(BaseModel):
+    sessions: list[ChatSessionEle]
+
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 client = chromadb.PersistentClient(path="chroma_db")
@@ -73,6 +80,12 @@ def format_chat_history(chat_history) -> str:
     for message in chat_history:
         formatted_history += f"{message.role}: {message.message}\n"
     return formatted_history
+
+def format_sessions(sessions) -> ChatSessionList:
+    formatted_sessions = []
+    for session in sessions:
+        formatted_sessions.append(ChatSessionEle(id=session.id, title=session.title))
+    return ChatSessionList(sessions=formatted_sessions)
 
 @router.post("/message", response_model=ChatMessageOut)
 def chat_message(chat_message_in: ChatMessageIn, db:Session = Depends(database.get_db), user_id: int = Depends(get_current_user)) -> ChatMessageOut:
@@ -137,3 +150,9 @@ def delete_chat_session(session_id: int, user_id: int = Depends(get_current_user
     db.delete(session)
     db.commit()
     return {"detail": "Session deleted"}
+
+@router.get("/sessions", response_model=ChatSessionList)
+def get_chat_sessions(user_id: int = Depends(get_current_user), db: Session = Depends(database.get_db)) -> ChatSessionList:
+    sessions = db.query(models.ChatSession).filter(models.ChatSession.user_id == user_id).all()
+    formatted_sessions = format_sessions(sessions)
+    return formatted_sessions
