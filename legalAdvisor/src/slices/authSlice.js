@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { loginAPI, signupAPI } from "../api/authAPI";
+import { loginAPI, signupAPI, deleteUserAPI } from "../api/authAPI";
 
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
@@ -21,6 +21,18 @@ export const signupUser = createAsyncThunk(
       return { token: res.data.access_token, user: { username } };
     } catch (err) {
       return thunkAPI.rejectWithValue(err.response?.data?.detail || err.message);
+    }
+  }
+);
+
+export const deleteUser = createAsyncThunk(
+  "auth/deleteUser",
+  async (token, thunkAPI) => {
+    try {
+      const res = await deleteUserAPI(token);
+      return res.data;
+    } catch (err) {
+      return thunkAPI.rejectWithValue(err.response?.data?.message || err.message);
     }
   }
 );

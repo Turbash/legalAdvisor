@@ -4,10 +4,7 @@ client = chromadb.PersistentClient(path="chroma_db")
 
 collection = client.get_collection("legal_docs")
 
-query = "what are fundamental rights"
-results = collection.query(
-    query_texts=[query],
-    n_results=5,
-    include=["documents", "metadatas", "distances"]
-)
+results = collection.get(ids=["constitution_1950_335", "constitution_1950_1"])
+for law in results["documents"]:
+    print(law)
 print(results)

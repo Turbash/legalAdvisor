@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 class ChatMessageIn(BaseModel):
     message: str
-    session_id: str
+    session_id: int
 
 class ChatMessageOut(BaseModel):
     response: str
@@ -42,7 +42,7 @@ collection = client.get_collection("legal_docs")
 def search_vector(query) -> list:
     results = collection.query(
     query_texts=[query],
-    n_results=5,
+    n_results=50,
     include=["documents", "metadatas", "distances"]
     )
     return results
@@ -62,11 +62,36 @@ def prepare_context(search_results) -> str:
     return context
 
 def make_prompt(context, user_message, chat_history) -> str:
-    prompt = f""" You are a law assistant, who explains indian laws to the users strictly
-                based on the context given to you, the user's message is this {user_message}, the context is the five most nearest laws
-                to the users query in the database that are extracted by us, here are these 5 laws in a very structured way.
-                {context}, explain strictly based on the context given to you and try to answer the user's query, Here is the last 5 turn of conversation between u and the user {chat_history}.
-                {chat_history}"""
+    prompt = f""" You are an Indian Law Assistant. Your role is to help users understand Indian laws and answer their queries.
+            Follow these rules:
+
+            Legal / Technical Queries:
+
+            Use the provided context of laws ({context}) strictly as your knowledge source.
+
+            Do not invent or assume any law outside of {context}.
+
+            When relevant, cite or paraphrase the specific law from the context clearly.
+
+            Keep your explanation accurate, structured, and concise.
+
+            General / Non-Legal Queries:
+
+            If the user asks a casual or unrelated question (greetings, small talk, chit-chat, or general life questions), respond normally in a friendly, conversational way without forcing the law context.
+
+            Conversation History ({chat_history}):
+
+            Use the last 5 turns to maintain continuity of conversation.
+
+            If the query links to an earlier law-related message, still answer strictly based on the given context.
+
+            Answering Style:
+
+            Be professional, clear, and helpful.
+
+            For legal answers: keep them structured, simple, and directly tied to {context}.
+
+            For non-legal: keep it natural, human-like, and helpful."""
     return prompt
 
 def prepare_messages(session_messages) -> ChatMessageList:
